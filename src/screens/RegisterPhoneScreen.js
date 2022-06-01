@@ -25,9 +25,27 @@ const RegisterPhoneScreen = ({navigation}) => {
   );
   const [InputContainerY, setInputCountainerY] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownLayout, setDropdownLayout] = useState({});
+
+  const closeDropdown = (pageX, pageY) => {
+    if (isDropdownOpen) {
+      if (
+        pageX < dropdownLayout?.x ||
+        pageX > dropdownLayout?.x + dropdownLayout?.width ||
+        pageY < dropdownLayout?.y ||
+        pageY > dropdownLayout?.y + dropdownLayout?.height
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onStartShouldSetResponder={({nativeEvent: {pageX, pageY}}) =>
+        closeDropdown(pageX, pageY)
+      }>
       <StatusBar
         barStyle="dark-content"
         backgroundColor={Colors.DEFAULT_WHITE}
@@ -71,19 +89,34 @@ const RegisterPhoneScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             keyboardType="number-pad"
+            onFocus={() => setIsDropdownOpen(false)}
             style={styles.textInput}
           />
         </View>
       </View>
+      <TouchableOpacity style={styles.signinButtom} activeOpacity={0.8}>
+        <Text style={styles.signinButtonText}>Continue</Text>
+      </TouchableOpacity>
       {isDropdownOpen && (
-        <View style={getDropdownStyle(InputContainerY)}>
+        <View
+          style={getDropdownStyle(InputContainerY)}
+          onLayout={({
+            nativeEvent: {
+              layout: {x, y, height, width},
+            },
+          }) => setDropdownLayout({x, y, height, width})}>
           <FlatList
             data={CountryCode}
             keyExtractor={item => item.code}
-            renderItem={({item}) => <FlagItem {...item} onPress={(country) =>  {
-              setSelectedCountry(country)
-              setIsDropdownOpen(false)
-            }}/>}
+            renderItem={({item}) => (
+              <FlagItem
+                {...item}
+                onPress={country => {
+                  setSelectedCountry(country);
+                  setIsDropdownOpen(false);
+                }}
+              />
+            )}
           />
         </View>
       )}
@@ -106,14 +139,14 @@ const styles = StyleSheet.create({
   },
   headerTitile: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    // fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     width: Display.setWidht(80),
     textAlign: 'center',
   },
   title: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    // fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     marginTop: 50,
     marginBottom: 10,
@@ -121,7 +154,7 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    // fontFamily: Fonts.POPPINS_MEDIUM,
     marginTop: 10,
     marginBottom: 20,
     marginHorizontal: 20,
@@ -161,7 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 14 * 1.4,
     color: Colors.DEFAULT_BLACK,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    // fontFamily: Fonts.POPPINS_MEDIUM,
   },
   textInput: {
     fontSize: 18,
@@ -180,5 +213,19 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.LIGHT_GREY,
     zIndex: 3,
+  },
+  signinButtom: {
+    backgroundColor: Colors.DEFAULT_GREEN,
+    borderRadius: 8,
+    marginHorizontal: 20,
+    height: Display.setHeight(6),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  signinButtonText: {
+    fontSize: 18,
+    lineHeight: 18 * 1.4,
+    color: Colors.DEFAULT_WHITE,
+    fontFamily: Fonts.POPPINS_MEDIUM,
   },
 });

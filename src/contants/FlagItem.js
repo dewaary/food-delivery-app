@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {Colors, Fonts} from '../contants';
-import { StaticImageService } from '../service';
+import {StaticImageService} from '../service';
 
 const FlagItem = ({code, name, dial_code, onPress}) => {
   return (
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 14 * 1.4,
     color: Colors.DEFAULT_BLACK,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    // fontFamily: Fonts.POPPINS_MEDIUM,
     marginRight: 10,
   },
 });
