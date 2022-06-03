@@ -14,9 +14,112 @@ import IonIcons from 'react-native-vector-icons/Ionicons';
 import {Display} from '../utils';
 IonIcons.loadFont();
 import Feather from 'react-native-vector-icons/Feather';
+import {AuthenticationService} from '../service';
+import LottieView from 'lottie-react-native';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
+const inputStyle = state => {
+  switch (state) {
+    case 'valid':
+      return {
+        ...styles.inputContainer,
+        borderWidth: 1,
+        borderColor: Colors.SECONDARY_GREEN,
+      };
+    case 'invalid':
+      return {
+        ...styles.inputContainer,
+        borderWidth: 1,
+        borderColor: Colors.DEFAULT_RED,
+      };
+    default:
+      return styles.inputContainer;
+  }
+};
+
+const showMarker = state => {
+  switch (state) {
+    case 'valid':
+      return (
+        <AntDesign
+          name="checkcircleo"
+          color={Colors.SECONDARY_GREEN}
+          size={18}
+          style={{marginLeft: 5}}
+        />
+      );
+    case 'invalid':
+      return (
+        <AntDesign
+          name="closecircleo"
+          color={Colors.DEFAULT_RED}
+          size={18}
+          style={{marginLeft: 5}}
+        />
+      );
+    default:
+      return null;
+  }
+};
 
 const SignupScreen = ({navigation}) => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [usernameErrorMessage, setUsernameErrorMessage] = useState('');
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [emailState, setEmailState] = useState('default');
+  const [usernameState, setUsernameState] = useState('default');
+
+  const register = () => {
+    let user = {
+      username,
+      password,
+      email,
+    };
+    console.log('ini user masuk', user);
+    setIsLoading(true);
+    AuthenticationService.register(user).then(response => {
+      setIsLoading(false);
+      console.log(response);
+      if (!response?.status) {
+        setErrorMessage(response?.message);
+      }
+    });
+    // AuthenticationService.register(user).then(response => {
+    //   console.log(response);
+    // });
+    // navigate
+  };
+
+  const checkUserExist = async (type, value) => {
+    if (value?.length > 0) {
+      AuthenticationService.checkUserExist(type, value).then(response => {
+        if (response?.status) {
+          type === 'email' && emailErrorMessage
+            ? setEmailErrorMessage('')
+            : null;
+
+          type === 'username' && usernameErrorMessage
+            ? setUsernameErrorMessage('')
+            : null;
+          type === 'email' ? setEmailState('valid') : null;
+          type === 'username' ? setUsernameState('valid') : null;
+        } else {
+          type === 'email' ? setEmailErrorMessage(response?.message) : null;
+          type === 'username'
+            ? setUsernameErrorMessage(response?.message)
+            : null;
+          type === 'email' ? setEmailState('invalid') : null;
+          type === 'username' ? setUsernameState('invalid') : null;
+        }
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -37,7 +140,7 @@ const SignupScreen = ({navigation}) => {
       <Text style={styles.content}>
         Enter your email, password, choose a username and password
       </Text>
-      <View style={styles.inputContainer}>
+      <View style={inputStyle(usernameState)}>
         <View style={styles.inputSubContainer}>
           <Feather
             name="user"
@@ -50,11 +153,16 @@ const SignupScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             style={styles.inputText}
+            onChangeText={text => setUsername(text)}
+            onEndEditing={({nativeEvent: {text}}) =>
+              checkUserExist('username', text)
+            }
           />
+          {showMarker(usernameState)}
         </View>
       </View>
-      <Separator height={15} />
-      <View style={styles.inputContainer}>
+      <Text style={styles.errorMessage}>{usernameErrorMessage}</Text>
+      <View style={inputStyle(emailState)}>
         <View style={styles.inputSubContainer}>
           <Feather
             name="mail"
@@ -67,10 +175,15 @@ const SignupScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             style={styles.inputText}
+            onChangeText={text => setEmail(text)}
+            onEndEditing={({nativeEvent: {text}}) =>
+              checkUserExist('email', text)
+            }
           />
+          {showMarker(emailState)}
         </View>
       </View>
-      <Separator height={15} />
+      <Text style={styles.errorMessage}>{emailErrorMessage}</Text>
       <View style={styles.inputContainer}>
         <View style={styles.inputSubContainer}>
           <Feather
@@ -85,6 +198,7 @@ const SignupScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             style={styles.inputText}
+            onChangeText={text => setPassword(text)}
           />
           <Feather
             name={isPasswordShow ? 'eye' : 'eye-off'}
@@ -95,10 +209,13 @@ const SignupScreen = ({navigation}) => {
           />
         </View>
       </View>
-      <TouchableOpacity
-        style={styles.signinButtom}
-        onPress={() => navigation.navigate('RegisterPhone')}>
-        <Text style={styles.signinButtonText}>Create Account</Text>
+      <Text style={styles.errorMessage}>{errorMessage}</Text>
+      <TouchableOpacity style={styles.signinButtom} onPress={() => register()}>
+        {isLoading ? (
+          <LottieView source={Images.LOADING} autoPlay />
+        ) : (
+          <Text style={styles.signinButtonText}>Create Account</Text>
+        )}
       </TouchableOpacity>
       <Text style={styles.orText}>OR</Text>
       <TouchableOpacity style={styles.facebookBottom}>
@@ -137,14 +254,14 @@ const styles = StyleSheet.create({
   },
   headerTitile: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     width: Display.setWidht(80),
     textAlign: 'center',
   },
   title: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     marginTop: 50,
     marginBottom: 10,
@@ -152,7 +269,7 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     marginTop: 10,
     marginBottom: 20,
     marginHorizontal: 20,
@@ -191,13 +308,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 18 * 1.4,
     color: Colors.DEFAULT_WHITE,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
   },
   orText: {
     fontSize: 15,
     lineHeight: 15 * 1.4,
     color: Colors.DEFAULT_BLACK,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     marginLeft: 5,
     alignSelf: 'center',
     marginTop: 30,
@@ -254,6 +371,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 13 * 1.4,
     color: Colors.DEFAULT_WHITE,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
+  },
+  errorMessage: {
+    fontSize: 10,
+    lineHeight: 10 * 1.4,
+    color: Colors.DEFAULT_RED,
+    marginHorizontal: 20,
+    marginTop: 5,
   },
 });

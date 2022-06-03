@@ -14,9 +14,31 @@ IonIcons.loadFont();
 import Feather from 'react-native-vector-icons/Feather';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Display} from '../utils';
+import {AuthenticationService} from '../service';
+import LottieView from 'lottie-react-native';
 
 const SigninScreen = ({navigation}) => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const signIn = async () => {
+    setIsLoading(true);
+    let user = {
+      username,
+      password,
+    };
+    AuthenticationService.login(user).then(response => {
+      setIsLoading(false);
+      console.log(response);
+      if (!response?.status) {
+        setErrorMessage(response?.message);
+      }
+    });
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -50,6 +72,7 @@ const SigninScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             style={styles.inputText}
+            onChangeText={text => setUsername(text)}
           />
         </View>
       </View>
@@ -68,6 +91,7 @@ const SigninScreen = ({navigation}) => {
             placeholderTextColor={Colors.DEFAULT_GREY}
             selectionColor={Colors.DEFAULT_GREY}
             style={styles.inputText}
+            onChangeText={text => setPassword(text)}
           />
           <Feather
             name={isPasswordShow ? 'eye' : 'eye-off'}
@@ -78,7 +102,7 @@ const SigninScreen = ({navigation}) => {
           />
         </View>
       </View>
-      <Text></Text>
+      <Text style={styles.errorMessage}>{errorMessage}</Text>
       <View style={styles.forgotPasswordContainer}>
         <View style={styles.toggleContainer}>
           <ToggleButton size={0.5} />
@@ -88,8 +112,15 @@ const SigninScreen = ({navigation}) => {
           <Text style={styles.forgotPasswordText}>Forgot Password</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.signinButtom}>
-        <Text style={styles.signinButtonText}>Sign in</Text>
+      <TouchableOpacity
+        style={styles.signinButtom}
+        onPress={() => signIn()}
+        activeOpacity={0.8}>
+        {isLoading ? (
+          <LottieView source={Images.LOADING} autoPlay />
+        ) : (
+          <Text style={styles.signinButtonText}>Sign in</Text>
+        )}
       </TouchableOpacity>
       <View style={styles.signupContainer}>
         <Text style={styles.accountText}>Don't have an account</Text>
@@ -134,14 +165,14 @@ const styles = StyleSheet.create({
   },
   headerTitile: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     width: Display.setWidht(80),
     textAlign: 'center',
   },
   title: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     lineHeight: 20 * 1.4,
     marginTop: 50,
     marginBottom: 10,
@@ -149,7 +180,7 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 20,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     marginTop: 10,
     marginBottom: 20,
     marginHorizontal: 20,
@@ -186,13 +217,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12 * 1.4,
     color: Colors.DEFAULT_GREY,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
   },
   forgotPasswordText: {
     fontSize: 12,
     lineHeight: 12 * 1.4,
     color: Colors.DEFAULT_GREEN,
-    fontFamily: Fonts.POPPINS_BOLD,
+    //fontFamily: Fonts.POPPINS_BOLD,
   },
   signinButtom: {
     backgroundColor: Colors.DEFAULT_GREEN,
@@ -207,7 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 18 * 1.4,
     color: Colors.DEFAULT_WHITE,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
   },
   signupContainer: {
     marginHorizontal: 20,
@@ -220,20 +251,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 13 * 1.4,
     color: Colors.DEFAULT_BLACK,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
   },
   signupText: {
     fontSize: 13,
     lineHeight: 13 * 1.4,
     color: Colors.DEFAULT_GREEN,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     marginLeft: 5,
   },
   orText: {
     fontSize: 15,
     lineHeight: 15 * 1.4,
     color: Colors.DEFAULT_BLACK,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
     marginLeft: 5,
     alignSelf: 'center',
   },
@@ -289,10 +320,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 13 * 1.4,
     color: Colors.DEFAULT_WHITE,
-    fontFamily: Fonts.POPPINS_MEDIUM,
+    //fontFamily: Fonts.POPPINS_MEDIUM,
   },
   toggleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  errorMessage: {
+    fontSize: 10,
+    lineHeight: 10 * 1.4,
+    color: Colors.DEFAULT_RED,
+    marginHorizontal: 20,
+    marginTop: 5,
+    marginBottom: 10,
   },
 });
