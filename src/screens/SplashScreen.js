@@ -4,11 +4,11 @@ import {Colors, Images, Fonts} from '../contants';
 import {Display} from '../utils';
 
 const SplashScreen = ({navigation}) => {
-  useEffect(() => {
-    setTimeout(() => {
-      navigation.navigate('Welcome');
-    }, 3000);
-  });
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     navigation.navigate('Welcome');
+  //   }, 3000);
+  // });
 
   return (
     <View style={styles.container}>

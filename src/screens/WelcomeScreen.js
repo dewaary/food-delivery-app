@@ -1,9 +1,12 @@
 import {FlatList, StatusBar, StyleSheet, Text, View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Colors, Fonts, General} from '../contants';
 import {WelcomeCard, Separator} from '../components';
 import {Display} from '../utils';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import {StorageService} from '../service';
+import {useDispatch} from 'react-redux';
+import GeneralAction from '../actions';
 
 const pageStyle = isActive =>
   isActive
@@ -39,6 +42,21 @@ const WelcomeScreen = ({navigation}) => {
       index: welcomeListIndex < 2 ? welcomeListIndex + 1 : welcomeListIndex,
     });
   };
+
+  const dispatch = useDispatch();
+
+  const navigate = () => {
+    StorageService.setFirstTimeUse().then(() => {
+      dispatch(GeneralAction.setIsFirstTimeUse());
+    });
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      navigate();
+    }, 3000);
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar
@@ -69,7 +87,7 @@ const WelcomeScreen = ({navigation}) => {
         <TouchableOpacity
           style={styles.gettingStartedButton}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('Signin')}>
+          onPress={() => navigate()}>
           <Text style={styles.gettingStartedText}>Getting Started</Text>
         </TouchableOpacity>
       ) : (

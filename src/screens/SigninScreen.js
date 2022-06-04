@@ -6,7 +6,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Separator, ToggleButton} from '../components';
 import {Colors, Fonts, Images} from '../contants';
 import IonIcons from 'react-native-vector-icons/Ionicons';
@@ -14,8 +14,10 @@ IonIcons.loadFont();
 import Feather from 'react-native-vector-icons/Feather';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Display} from '../utils';
-import {AuthenticationService} from '../service';
+import {AuthenticationService, StorageService} from '../service';
 import LottieView from 'lottie-react-native';
+import {useDispatch} from 'react-redux';
+import GeneralAction from '../actions';
 
 const SigninScreen = ({navigation}) => {
   const [isPasswordShow, setIsPasswordShow] = useState(false);
@@ -23,6 +25,8 @@ const SigninScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const dispatch = useDispatch();
 
   const signIn = async () => {
     setIsLoading(true);
@@ -32,12 +36,19 @@ const SigninScreen = ({navigation}) => {
     };
     AuthenticationService.login(user).then(response => {
       setIsLoading(false);
-      console.log(response);
-      if (!response?.status) {
+      if (response?.status) {
+        StorageService.setToken(response?.data).then(() => {
+          dispatch(GeneralAction.setToken(response?.data));
+        });
+      } else {
         setErrorMessage(response?.message);
       }
     });
   };
+
+  useEffect(() => {
+    signIn();
+  });
 
   return (
     <View style={styles.container}>
@@ -148,8 +159,6 @@ const SigninScreen = ({navigation}) => {
     </View>
   );
 };
-
-export default SigninScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -335,3 +344,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
+
+export default SigninScreen;
